@@ -35,6 +35,7 @@
 #include <cstdio>
 #include <stdarg.h>
 #include <math.h>
+#include <random>
 
 #ifdef _WIN32  /*modifications for Windows compilation */
 #include <glib.h>
@@ -1131,9 +1132,13 @@ static void parse_arguments (int argc, char *argv[]) {
 	    printf("db range %f:%f\n", db_low, db_high);
         } else if (arg == "-btip") {
             ble_advertisement = true;
-            ble_address[0] = rand() % 255; ble_address[1] = rand() % 255;
-            ble_address[2] = rand() % 255; ble_address[3] = rand() % 255;
-            ble_address[4] = rand() % 255; ble_address[5] = rand() % 255;
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> distrib(0, 255);
+            ble_address[0] = distrib(gen); ble_address[1] = distrib(gen);
+            ble_address[2] = distrib(gen); ble_address[3] = distrib(gen);
+            ble_address[4] = distrib(gen); ble_address[5] = distrib(gen);
+            //printf("chose ble_address %02x:%02x:%02x:%02x:%02x:%02x\n", ble_address[5], ble_address[4], ble_address[3], ble_address[2], ble_address[1], ble_address[0]);
         } else {
             fprintf(stderr, "unknown option %s, stopping (for help use option \"-h\")\n",argv[i]);
             exit(1);
@@ -2164,7 +2169,7 @@ int main (int argc, char *argv[]) {
 
     restart:
     if (ble_advertisement) {
-        if (configure_ble("eth0", ble_address) != 0 || ble_advertise(true) != 0) {
+        if (configure_ble("wlp3s0", ble_address) != 0 || ble_advertise(true) != 0) {
             ble_advertisement = false;
             LOGI("Failed to initialise BLE interface: Disabling until application restarts");
         }
